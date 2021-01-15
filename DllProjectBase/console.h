@@ -1,5 +1,5 @@
 #pragma once
-#include "stdafx.h"
+#include "includes.h"
 
 void console(LPVOID hModule) { //console assignment
 	

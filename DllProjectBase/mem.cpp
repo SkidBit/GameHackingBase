@@ -1,40 +1,6 @@
-#include "stdafx.h"
 #include "mem.h"
-#include "ntdll.h"
 
-void mem::restoreBytes(void* address, std::vector<BYTE>bytesToRestore) {
-
-	DWORD curProtection;
-	VirtualProtect(address, bytesToRestore.size(), PAGE_EXECUTE_READWRITE, &curProtection);
-
-	memcpy(address, bytesToRestore.data(), bytesToRestore.size());
-
-	DWORD temp;
-	VirtualProtect(address, bytesToRestore.size(), curProtection, &temp);
-}
-
-std::vector<BYTE> mem::nopBytes(void* address, int amountOfBytesToNop) {
-
-
-	DWORD curProtection;
-	VirtualProtect(address, amountOfBytesToNop, PAGE_EXECUTE_READWRITE, &curProtection);
-
-	std::vector<BYTE> originalBytes;
-	BYTE currentByte;
-
-	for (int i = 0; i < amountOfBytesToNop; i++) {
-		currentByte = *(BYTE*)((BYTE*)address + i);
-		originalBytes.push_back(currentByte);
-	}
-
-	memset(address, 0x90, amountOfBytesToNop);
-
-	VirtualProtect(address, amountOfBytesToNop, curProtection, &curProtection);
-
-	return originalBytes;
-}
-
-std::vector<BYTE> mem::detour32(void* src, void* dst, int len)
+std::vector<BYTE> mem::HookR(void* src, void* dst, int len)
 {
 	DWORD curProtection;
 	VirtualProtect(src, len, PAGE_EXECUTE_READWRITE, &curProtection);
@@ -61,6 +27,104 @@ std::vector<BYTE> mem::detour32(void* src, void* dst, int len)
 
 	return originalBytes;
 }
+
+bool mem::Hook(char* src, char* dst, int len)
+{
+	if (len < 5) return false;
+
+	DWORD curProtection;
+
+	VirtualProtect(src, len, PAGE_EXECUTE_READWRITE, &curProtection);
+
+	memset(src, 0x90, len);
+
+	uintptr_t relativeAddress = (uintptr_t)(dst - src - 5);
+
+	*src = (char)0xE9;
+	*(uintptr_t*)(src + 1) = (uintptr_t)relativeAddress;
+
+	DWORD temp;
+	VirtualProtect(src, len, curProtection, &temp);
+
+	return true;
+}
+
+char* mem::TrampHook(char* src, char* dst, unsigned int len)
+{
+	if (len < 5) return 0;
+
+	// Create the gateway (len + 5 for the overwritten bytes + the jmp)
+	char* gateway = (char*)VirtualAlloc(0, len + 5, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+
+	// Put the bytes that will be overwritten in the gateway
+	memcpy(gateway, src, len);
+
+	// Get the gateway to destination addy
+	uintptr_t gateJmpAddy = (uintptr_t)(src - gateway - 5);
+
+	// Add the jmp opcode to the end of the gateway
+	*(gateway + len) = (char)0xE9;
+
+	// Add the address to the jmp
+	*(uintptr_t*)(gateway + len + 1) = gateJmpAddy;
+
+	// Place the hook at the destination
+	if (Hook(src, dst, len))
+	{
+		return gateway;
+	}
+	else return nullptr;
+}
+
+
+bool mem::IsBadReadPtr(void* p)
+{
+	MEMORY_BASIC_INFORMATION mbi = { 0 };
+	if (::VirtualQuery(p, &mbi, sizeof(mbi)))
+	{
+		DWORD mask = (PAGE_READONLY | PAGE_READWRITE | PAGE_WRITECOPY | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY);
+		bool b = !(mbi.Protect & mask);
+		// check the page is not a guard page
+		if (mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS)) b = true;
+
+		return b;
+	}
+	return true;
+}
+
+void mem::WriteBytes(void* address, std::vector<BYTE>bytesToRestore) {
+
+	DWORD curProtection;
+	VirtualProtect(address, bytesToRestore.size(), PAGE_EXECUTE_READWRITE, &curProtection);
+
+	memcpy(address, bytesToRestore.data(), bytesToRestore.size());
+
+	DWORD temp;
+	VirtualProtect(address, bytesToRestore.size(), curProtection, &temp);
+}
+
+std::vector<BYTE> mem::NopBytesR(void* address, int amountOfBytesToNop) {
+
+
+	DWORD curProtection;
+	VirtualProtect(address, amountOfBytesToNop, PAGE_EXECUTE_READWRITE, &curProtection);
+
+	std::vector<BYTE> originalBytes;
+	BYTE currentByte;
+
+	for (int i = 0; i < amountOfBytesToNop; i++) {
+		currentByte = *(BYTE*)((BYTE*)address + i);
+		originalBytes.push_back(currentByte);
+	}
+
+	memset(address, 0x90, amountOfBytesToNop);
+
+	VirtualProtect(address, amountOfBytesToNop, curProtection, &curProtection);
+
+	return originalBytes;
+}
+
+
 
 char* TO_CHAR(wchar_t* string)
 {
@@ -186,7 +250,7 @@ void mem::Nop(BYTE* dst, unsigned int size)
 	VirtualProtect(dst, size, oldprotect, &oldprotect);
 }
 
-uintptr_t mem::FindDMAAddy(uintptr_t ptr, std::vector<unsigned int> offsets)
+uintptr_t mem::ResolveMLPointer(uintptr_t ptr, std::vector<unsigned int> offsets)
 {
 	uintptr_t addr = ptr;
 	for (unsigned int i = 0; i < offsets.size(); ++i)

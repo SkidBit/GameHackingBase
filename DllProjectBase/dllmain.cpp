@@ -1,12 +1,8 @@
-#include "stdafx.h"
+#include "includes.h"
 #include "console.h"
 
 #define show_console 1 //1 = show console ~ 0 = don't show console
 
-// for hooking
-void __declspec(naked)exampleAsmFunction() {
-	__asm {}
-}
 
 DWORD WINAPI MainThread(LPVOID param) {
 

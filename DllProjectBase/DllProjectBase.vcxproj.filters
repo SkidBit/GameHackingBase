@@ -8,35 +8,35 @@
     <Filter Include="mem">
       <UniqueIdentifier>{486054c5-1c14-4248-99b7-cc6994a8b73e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="pch">
-      <UniqueIdentifier>{6bf79f34-2fe7-4c90-b934-674630d33676}</UniqueIdentifier>
-    </Filter>
     <Filter Include="source files">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="proc">
-      <UniqueIdentifier>{c0986628-0dc9-47fe-9c9c-db0bc123ba22}</UniqueIdentifier>
+    <Filter Include="hooks">
+      <UniqueIdentifier>{f713a6fb-6ba8-43a3-9070-8b4df5a1a34a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="headers">
+      <UniqueIdentifier>{6bf79f34-2fe7-4c90-b934-674630d33676}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mem.h">
       <Filter>mem</Filter>
     </ClInclude>
-    <ClInclude Include="stdafx.h">
-      <Filter>pch</Filter>
-    </ClInclude>
-    <ClInclude Include="targetver.h">
-      <Filter>pch</Filter>
-    </ClInclude>
     <ClInclude Include="console.h">
       <Filter>source files</Filter>
     </ClInclude>
-    <ClInclude Include="proc.h">
-      <Filter>proc</Filter>
-    </ClInclude>
     <ClInclude Include="ntdll.h">
-      <Filter>pch</Filter>
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="exampleHook.h">
+      <Filter>hooks</Filter>
+    </ClInclude>
+    <ClInclude Include="includes.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="constants.h">
+      <Filter>headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -45,12 +45,6 @@
     </ClCompile>
     <ClCompile Include="mem.cpp">
       <Filter>mem</Filter>
-    </ClCompile>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>pch</Filter>
-    </ClCompile>
-    <ClCompile Include="proc.cpp">
-      <Filter>proc</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
