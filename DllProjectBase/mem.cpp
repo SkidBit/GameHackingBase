@@ -233,7 +233,7 @@ char* mem::ScanBasic(char* pattern, char* mask, char* begin, intptr_t size)
 
 
 
-void mem::Patch(BYTE* dst, BYTE* src, unsigned int size)
+void mem::WriteBytes(BYTE* dst, BYTE* src, unsigned int size)
 {
 	DWORD oldprotect;
 	VirtualProtect(dst, size, PAGE_EXECUTE_READWRITE, &oldprotect);
